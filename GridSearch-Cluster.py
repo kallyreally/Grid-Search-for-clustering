@@ -1,20 +1,20 @@
-def GridSearch_Cluster(method = "KMeans", df = X, min_clusters = 2, max_clusters = 10, num_columns = len(X.columns), affinity="euclidean", linkage = "complete"):
+def GridSearch_Cluster(method = "KMeans", df = X, min_clusters = 2, max_clusters = 10, num_predictors = len(X.columns), affinity="euclidean", linkage = "complete"):
     """
-    Grid-Search for three clustering methods: KMeans, --- and -- using silhouette score
+    Grid-Search and feature selection for two clustering methods: KMeans and Agglomerative Clustering using silhouette score
 
     Args:
-        method (function): KMeans, Agglomerative clustering or ---.
+        method (function): "KMeans", or "Agglomerative clustering"
         df (dataframe): dataframe of predictors
         min_clusters (int): minimum number of clusters to search over
-        max_clusters: maximum number of clusters to search over
-        num_columns: number of columns to search over
+        max_clusters (int): maximum number of clusters to search over
+        num_predictors (int): number of variables in predictor combination
 
     Returns:
-        Message with maximum score and number of clusters, combination of
-        predictors that generate maximum score.
+        Message with maximum score (float) and number of clusters, combination of
+        predictors that generate maximum score. (list)
     """
-    from sklearn.metrics import silhouette_score
     import itertools
+    from sklearn.metrics import silhouette_score
     from sklearn.cluster import KMeans
     from sklearn.cluster import AgglomerativeClustering
     
@@ -25,26 +25,23 @@ def GridSearch_Cluster(method = "KMeans", df = X, min_clusters = 2, max_clusters
     silhouette_scores = {}
     #list of scores to calculate max(score) and key dictionary for values
     scores = []
-    comb_count = 0
     count = 2
-    for r in range(2,num_columns):
-
-        #print(" %i percent done ---------------------: ", count)
-        count += 1
-        for comb in itertools.combinations(X.columns, r):
-            comb_count += 1
-            print("combinations completed", comb_count)
-            X1 = X[list(comb)]   
-            for number in range(min_clusters, max_clusters):
+    for r in range(2,num_predictors+1): #iterate over number of predictors specified
+        for comb in itertools.combinations(X.columns, r): #take combinations of size r from predictors
+            X1 = X[list(comb)]  # use dataframe with only predictors in combination
+            for num_clusters in range(min_clusters, max_clusters): #iterate over cluster range specified for predictor combination
                 if method == "KMeans":
-                    cluster = KMeans(n_clusters=number)
+                    cluster = KMeans(n_clusters=num_clusters)
                 if method == "AgglomerativeClustering":
-                    cluster = AgglomerativeClustering(n_clusters=number, affinity = affinity, linkage = linkage)
+                    cluster = AgglomerativeClustering(n_clusters=num_clusters, affinity = affinity, linkage = linkage)
                 cluster.fit(X1)
                 y_cluster = cluster.predict(X1)
-                score = silhouette_score(X1,y_cluster)
-                scores.append(score)
-                silhouette_scores[score] = [number,comb]
+                score = silhouette_score(X1,y_cluster) 
+                scores.append(score) 
+                silhouette_scores[score] = [num_clusters,comb]
+        print(f"combination analysis done for {count} predictors")
+        count += 1
+
 
     return "Max score: ", max(scores), "\n Optimum number of clusters and best predictor combination: ", silhouette_scores[max(scores)]
 
