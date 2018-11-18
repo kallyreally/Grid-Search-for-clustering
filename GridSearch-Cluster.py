@@ -1,3 +1,7 @@
+import itertools
+from sklearn.metrics import silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
 
 def GridSearch_Cluster(method = "KMeans", df = X, min_clusters = 2, 
                        max_clusters = 10, num_predictors = len(X.columns), 
@@ -16,32 +20,28 @@ def GridSearch_Cluster(method = "KMeans", df = X, min_clusters = 2,
         Message with maximum score (float) and number of clusters, combination 
         of predictors that generate maximum score. (list)
     """
-    import itertools
-    from sklearn.metrics import silhouette_score
-    from sklearn.cluster import KMeans
-    from sklearn.cluster import AgglomerativeClustering
     
   
     total_columns = len(X.columns)
 
-    #dictionary to store silhouette scores, number of clusters and variables 
+    #Dictionary to store silhouette scores, number of clusters and variables 
     #used, keyed by silhouette score
     silhouette_scores = {}
 
-    #list of scores to calculate max(score) and key dictionary for values
+    #List of scores to calculate max(score) and key dictionary for values
     scores = []
 
-    #count to store progress
+    #Count to store progress
     count = 2
 
-    #iterate over number of predictors specified
+    #Iterate over number of predictors specified
     for r in range(2,num_predictors+1): 
-        #take combinations of size r from predictors
+        #Take combinations of size r from predictors
         #print(f"PROGRESS: {count}/{num_predictors}")
         for comb in itertools.combinations(X.columns, r): 
-            # use dataframe with only predictors in combination
+            # Use dataframe with only predictors in combination
             X1 = X[list(comb)]
-            #iterate over cluster range specified for predictor combination  
+            #Iterate over cluster range specified for predictor combination  
             for num_clusters in range(min_clusters, max_clusters): 
                 if method == "KMeans":
                     cluster = KMeans(n_clusters=num_clusters)
